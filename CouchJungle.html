@@ -300,16 +300,147 @@
             font-size: 0.75rem;
             color: #64748b;
         }
+
+        /* Кнопка мови */
+        .lang-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .city-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .city-chip {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            padding: 7px 18px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .city-chip:hover { background: rgba(255,255,255,0.3); }
+
+        .mini-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(6px);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .mini-modal-content {
+            background: white;
+            border-radius: 32px;
+            padding: 28px 24px;
+            width: 88%;
+            max-width: 420px;
+        }
+
+        .mini-modal-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .lang-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .lang-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 20px;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .lang-item:hover, .lang-item.active {
+            border-color: #1e3a8a;
+            background: #eef2ff;
+        }
+
+        .city-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .city-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 20px;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .city-item:hover { border-color: #1e3a8a; background: #eef2ff; }
+
+        .mini-close {
+            width: 100%;
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 40px;
+            border: none;
+            background: #f1f5f9;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <!-- Hero -->
     <div class="hero">
+        <button class="lang-btn" onclick="openLangModal()">🌐 UA</button>
         <div class="hero-label">✈️ We've traveled the World</div>
         <h1>🌿 Couch to Jungle</h1>
-        <p>Київ → Європа. Від дверей до дверей. Без прихованих комісій.</p>
-        <div class="price-badge">🎟 20+ маршрутів. Актуальні ціни щодня</div>
+        <div class="city-selector">
+            <span style="opacity:0.8; font-size:0.85rem;">📍 Ви в місті:</span>
+            <span class="city-chip" onclick="openCityModal('from')" id="fromCity">🇺🇦 Київ ▾</span>
+            <span style="opacity:0.7;">→</span>
+            <span class="city-chip" onclick="openCityModal('to')" id="toCity">🌍 Куди їдете? ▾</span>
+        </div>
+        <div class="price-badge" style="margin-top:14px;">🎟 20+ маршрутів. Актуальні ціни щодня</div>
     </div>
 
     <!-- Рекламний баннер -->
@@ -355,6 +486,32 @@
     <footer>
         © Couch to Jungle — Маршрути від дверей до дверей. Ціни оновлюються 2 рази на день.
     </footer>
+</div>
+
+
+<!-- Модалка вибору мови -->
+<div id="langModal" class="mini-modal">
+    <div class="mini-modal-content">
+        <div class="mini-modal-title">🌐 Оберіть мову / Choose language</div>
+        <div class="lang-grid">
+            <div class="lang-item active" onclick="setLang('uk')">🇺🇦 Українська</div>
+            <div class="lang-item" onclick="setLang('en')">🇬🇧 English</div>
+            <div class="lang-item" onclick="setLang('pl')">🇵🇱 Polski</div>
+            <div class="lang-item" onclick="setLang('de')">🇩🇪 Deutsch</div>
+            <div class="lang-item" onclick="setLang('cs')">🇨🇿 Čeština</div>
+            <div class="lang-item" onclick="setLang('ro')">🇷🇴 Română</div>
+        </div>
+        <button class="mini-close" onclick="closeLangModal()">Закрити / Close</button>
+    </div>
+</div>
+
+<!-- Модалка вибору міста -->
+<div id="cityModal" class="mini-modal">
+    <div class="mini-modal-content">
+        <div class="mini-modal-title" id="cityModalTitle">📍 Ваше місто відправлення</div>
+        <div class="city-list" id="cityList"></div>
+        <button class="mini-close" onclick="closeCityModal()">Закрити</button>
+    </div>
 </div>
 
 <!-- Модалка -->
@@ -470,6 +627,106 @@
             renderRoutes(filter);
         });
     });
+
+
+    // === МОВА ===
+    function openLangModal() { document.getElementById('langModal').style.display='flex'; }
+    function closeLangModal() { document.getElementById('langModal').style.display='none'; }
+    function setLang(code) {
+        const flags = {uk:'🇺🇦', en:'🇬🇧', pl:'🇵🇱', de:'🇩🇪', cs:'🇨🇿', ro:'🇷🇴'};
+        document.querySelector('.lang-btn').textContent = flags[code] + ' ' + code.toUpperCase();
+        document.querySelectorAll('.lang-item').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
+        closeLangModal();
+    }
+
+    // === МІСТА ===
+    const ukraineCities = [
+        {flag:'🇺🇦', name:'Київ'}, {flag:'🇺🇦', name:'Львів'},
+        {flag:'🇺🇦', name:'Одеса'}, {flag:'🇺🇦', name:'Харків'},
+        {flag:'🇺🇦', name:'Дніпро'}, {flag:'🇺🇦', name:'Запоріжжя'},
+        {flag:'🇺🇦', name:'Вінниця'}, {flag:'🇺🇦', name:'Чернівці'},
+        {flag:'🇺🇦', name:'Рівне'}, {flag:'🇺🇦', name:'Луцьк'},
+        {flag:'🇺🇦', name:'Житомир'}, {flag:'🇺🇦', name:'Хмельницький'},
+        {flag:'🇺🇦', name:'Тернопіль'}, {flag:'🇺🇦', name:'Івано-Франківськ'},
+        {flag:'🇺🇦', name:'Ужгород'}, {flag:'🇺🇦', name:'Мукачево'},
+        {flag:'🇺🇦', name:'Чернігів'}, {flag:'🇺🇦', name:'Суми'},
+        {flag:'🇺🇦', name:'Полтава'}, {flag:'🇺🇦', name:'Кропивницький'},
+        {flag:'🇺🇦', name:'Миколаїв'}, {flag:'🇺🇦', name:'Херсон'},
+        {flag:'🇺🇦', name:'Черкаси'}, {flag:'🇺🇦', name:'Кременчук'},
+        {flag:'🇺🇦', name:'Маріуполь'}, {flag:'🇺🇦', name:'Краматорськ'},
+        {flag:'🇺🇦', name:'Бердянськ'}, {flag:'🇺🇦', name:'Мелітополь'},
+        {flag:'🇺🇦', name:'Нікополь'}, {flag:'🇺🇦', name:'Камянець-Подільський'},
+        {flag:'🇺🇦', name:'Дрогобич'}, {flag:'🇺🇦', name:'Стрий'},
+        {flag:'🇺🇦', name:'Коломия'}, {flag:'🇺🇦', name:'Мостиська'},
+        {flag:'🇺🇦', name:'Нововолинськ'}, {flag:'🇺🇦', name:'Ковель'},
+        {flag:'🇺🇦', name:'Шостка'}, {flag:'🇺🇦', name:'Конотоп'},
+        {flag:'🇺🇦', name:'Бердичів'}, {flag:'🇺🇦', name:'Коростень'},
+        {flag:'🇺🇦', name:'Білогірськ'}, {flag:'🇺🇦', name:'Новоград-Волинський'},
+        {flag:'🇺🇦', name:'Умань'}, {flag:'🇺🇦', name:'Сміла'},
+        {flag:'🇺🇦', name:'Прилуки'}, {flag:'🇺🇦', name:'Ніжин'},
+        {flag:'🇺🇦', name:'Лубни'}, {flag:'🇺🇦', name:'Миргород'},
+        {flag:'🇺🇦', name:'Охтирка'}, {flag:'🇺🇦', name:'Ромни'},
+    ];
+
+    const europeCities = [
+        {flag:'🇵🇱', name:'Варшава'}, {flag:'🇵🇱', name:'Краків'},
+        {flag:'🇵🇱', name:'Вроцлав'}, {flag:'🇵🇱', name:'Лодзь'},
+        {flag:'🇵🇱', name:'Познань'}, {flag:'🇵🇱', name:'Гданськ'},
+        {flag:'🇵🇱', name:'Люблін'}, {flag:'🇵🇱', name:'Катовіце'},
+        {flag:'🇩🇪', name:'Берлін'}, {flag:'🇩🇪', name:'Мюнхен'},
+        {flag:'🇩🇪', name:'Гамбург'}, {flag:'🇩🇪', name:'Франкфурт'},
+        {flag:'🇩🇪', name:'Дюссельдорф'}, {flag:'🇩🇪', name:'Дрезден'},
+        {flag:'🇨🇿', name:'Прага'}, {flag:'🇨🇿', name:'Брно'},
+        {flag:'🇨🇿', name:'Острава'}, {flag:'🇭🇺', name:'Будапешт'},
+        {flag:'🇭🇺', name:'Дебрецен'}, {flag:'🇦🇹', name:'Відень'},
+        {flag:'🇦🇹', name:'Грац'}, {flag:'🇸🇰', name:'Братислава'},
+        {flag:'🇸🇰', name:'Кошіце'}, {flag:'🇷🇴', name:'Бухарест'},
+        {flag:'🇷🇴', name:'Клуж-Напока'}, {flag:'🇷🇴', name:'Тімішоара'},
+        {flag:'🇱🇻', name:'Рига'}, {flag:'🇱🇹', name:'Вільнюс'},
+        {flag:'🇪🇪', name:'Таллінн'}, {flag:'🇧🇬', name:'Софія'},
+        {flag:'🇧🇬', name:'Варна'}, {flag:'🇷🇸', name:'Белград'},
+        {flag:'🇷🇸', name:'Нові Сад'}, {flag:'🇭🇷', name:'Загреб'},
+        {flag:'🇸🇮', name:'Любляна'}, {flag:'🇧🇦', name:'Сараєво'},
+        {flag:'🇮🇹', name:'Мілан'}, {flag:'🇮🇹', name:'Рим'},
+        {flag:'🇮🇹', name:'Венеція'}, {flag:'🇮🇹', name:'Флоренція'},
+        {flag:'🇪🇸', name:'Барселона'}, {flag:'🇪🇸', name:'Мадрид'},
+        {flag:'🇫🇷', name:'Париж'}, {flag:'🇫🇷', name:'Ліон'},
+        {flag:'🇬🇧', name:'Лондон'}, {flag:'🇬🇧', name:'Манчестер'},
+        {flag:'🇳🇱', name:'Амстердам'}, {flag:'🇧🇪', name:'Брюссель'},
+        {flag:'🇨🇭', name:'Цюрих'}, {flag:'🇬🇷', name:'Афіни'},
+    ];
+
+    const fromCities = [...ukraineCities, ...europeCities];
+    const toCities = [...europeCities, ...ukraineCities];
+
+    let cityModalMode = 'from';
+
+    function openCityModal(mode) {
+        cityModalMode = mode;
+        const title = document.getElementById('cityModalTitle');
+        const list = document.getElementById('cityList');
+        const cities = mode === 'from' ? fromCities : toCities;
+        title.textContent = mode === 'from' ? '📍 Ваше місто відправлення' : '🌍 Куди їдете?';
+        list.innerHTML = cities.map(c => `
+            <div class="city-item" onclick="selectCity('${mode}','${c.flag}','${c.name}')">
+                <span style="font-size:1.5rem">${c.flag}</span>
+                <span>${c.name}</span>
+            </div>
+        `).join('');
+        document.getElementById('cityModal').style.display='flex';
+    }
+
+    function selectCity(mode, flag, name) {
+        if(mode === 'from') {
+            document.getElementById('fromCity').textContent = flag + ' ' + name + ' ▾';
+        } else {
+            document.getElementById('toCity').textContent = flag + ' ' + name + ' ▾';
+        }
+        closeCityModal();
+    }
+
+    function closeCityModal() { document.getElementById('cityModal').style.display='none'; }
 
     // Початковий рендер
     renderRoutes("all");
