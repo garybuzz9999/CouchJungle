@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Couch to Jungle — Маршрути Київ → Європа</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f4f7fc;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .hero {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            border-radius: 32px;
+            padding: 32px 24px;
+            margin-bottom: 24px;
+            color: white;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .hero p {
+            opacity: 0.9;
+            margin-bottom: 16px;
+        }
+
+        .price-badge {
+            background: #fbbf24;
+            color: #0f172a;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+
+        /* Фільтри */
+        .filters {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 60px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .filter-btn.active {
+            background: #1e3a8a;
+            color: white;
+        }
+
+        /* Сітка маршрутів */
+        .routes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .route-card {
+            background: white;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            transition: all 0.25s ease;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .route-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -12px rgba(0,0,0,0.15);
+        }
+
+        .card-image {
+            height: 140px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .card-content {
+            padding: 18px;
+        }
+
+        .route-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .route-price {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #10b981;
+        }
+
+        .route-details {
+            display: flex;
+            gap: 16px;
+            margin: 12px 0;
+            font-size: 0.8rem;
+            color: #475569;
+        }
+
+        .partner-logos {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            flex-wrap: wrap;
+        }
+
+        .partner {
+            background: #f1f5f9;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Рекламний банер */
+        .ad-banner {
+            background: white;
+            border-radius: 24px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+
+        .ad-text {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ad-logo {
+            font-size: 2rem;
+        }
+
+        .ad-button {
+            background: #f97316;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 8px 24px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* Модалка */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 600px;
+            width: 90%;
+            border-radius: 48px;
+            padding: 24px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .route-steps {
+            margin: 20px 0;
+        }
+
+        .step {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eef2ff;
+        }
+
+        .step-icon {
+            font-size: 1.8rem;
+        }
+
+        .step-price {
+            font-weight: 700;
+            color: #10b981;
+        }
+
+        .pay-button {
+            background: #10b981;
+            width: 100%;
+            border: none;
+            padding: 16px;
+            border-radius: 60px;
+            color: white;
+            font-weight: 800;
+            font-size: 1.2rem;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        /* Мануал */
+        .manual {
+            background: #fefce8;
+            border-radius: 28px;
+            padding: 24px;
+            margin: 32px 0;
+            border-left: 8px solid #eab308;
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Hero -->
+    <div class="hero">
+        <h1>🌿 Couch to Jungle</h1>
+        <p>Київ → Європа. Від дверей до дверей. Без прихованих комісій.</p>
+        <div class="price-badge">🎟 20+ маршрутів. Актуальні ціни щодня</div>
+    </div>
+
+    <!-- Рекламний баннер -->
+    <div class="ad-banner">
+        <div class="ad-text">
+            <div class="ad-logo">🚍</div>
+            <div><strong>Lux Express</strong> — спецтариф для України: -15% на всі рейси до Риги та Таллінна</div>
+        </div>
+        <button class="ad-button" onclick="alert('Демо: перехід на сайт Lux Express')">Деталі</button>
+    </div>
+
+    <!-- Фільтри -->
+    <div class="filters">
+        <button class="filter-btn active" data-filter="all">Всі маршрути</button>
+        <button class="filter-btn" data-filter="bus">🚌 Автобус</button>
+        <button class="filter-btn" data-filter="train">🚆 Поїзд</button>
+        <button class="filter-btn" data-filter="flight">✈️ Авіа (лоукост)</button>
+    </div>
+
+    <!-- Сітка маршрутів -->
+    <div class="routes-grid" id="routesGrid"></div>
+
+    <!-- Рекламний баннер 2 -->
+    <div class="ad-banner">
+        <div class="ad-text">
+            <div class="ad-logo">✈️</div>
+            <div><strong>Ryanair</strong> — акція: 500 000 квитків по €19.99 з Kraków та Wrocław</div>
+        </div>
+        <button class="ad-button" onclick="alert('Демо: перехід на Ryanair')">Перевірити</button>
+    </div>
+
+    <!-- Як працює -->
+    <div class="manual">
+        <h3>📘 Як це працює</h3>
+        <ul style="margin-left: 20px; margin-top: 12px; line-height: 1.6;">
+            <li><strong>Крок 1:</strong> Щодня збираємо актуальні ціни від 20+ перевізників: Flixbus, Lux Express, Ecolines, Укрзалізниця, Ryanair, Wizz Air.</li>
+            <li><strong>Крок 2:</strong> Будуємо маршрут «від дверей до дверей»: таксі до вокзалу → автобус/поїзд/літак → таксі до готелю.</li>
+            <li><strong>Крок 3:</strong> За <strong>$1/місяць</strong> ти отримуєш доступ до всіх маршрутів, карт і сповіщень про знижки.</li>
+        </ul>
+        <p style="margin-top: 14px; font-style: italic;">📌 20 напрямків з Києва до Європи. Кожна картка — готовий маршрут з усіма пересадками та витратами.</p>
+    </div>
+
+    <footer>
+        © Couch to Jungle — Маршрути від дверей до дверей. Ціни оновлюються 2 рази на день.
+    </footer>
+</div>
+
+<!-- Модалка -->
+<div id="routeModal" class="modal">
+    <div class="modal-content" id="modalContent">
+        <!-- Динамічний вміст -->
+    </div>
+</div>
+
+<script>
+    // СПИСОК МАРШРУТІВ (20 шт, Київ -> Європа)
+    const routes = [
+        { id: 1, city: "Варшава", country: "Польща", type: "bus", price: 29, time: "11 год", carriers: ["Flixbus", "Ecolines"], image: "🇵🇱", details: ["🚕 Таксі до Дарниці: 120 грн", "🚌 Автобус Київ-Варшава: 24$", "🚇 Метро до центру: 1.5$", "🚶 Хостел за 5 хв"] },
+        { id: 2, city: "Краків", country: "Польща", type: "bus", price: 34, time: "12 год 20 хв", carriers: ["Flixbus", "Lux Express"], image: "🇵🇱", details: ["🚕 Таксі до ЦАВ: 100 грн", "🚌 Flixbus Київ-Краків: 28$", "🚊 Трамвай до Старого міста: 0.7$"] },
+        { id: 3, city: "Берлін", country: "Німеччина", type: "bus", price: 59, time: "20 год", carriers: ["Flixbus", "Ecolines"], image: "🇩🇪", details: ["🚕 Таксі до ЦАВ: 100 грн", "🚌 Автобус Київ-Берлін: 54$", "🚇 U-Bahn до центру: 2.5$"] },
+        { id: 4, city: "Прага", country: "Чехія", type: "train", price: 49, time: "18 год", carriers: ["Укрзалізниця", "RegioJet"], image: "🇨🇿", details: ["🚕 Таксі до Київ-Пасажирський: 150 грн", "🚆 Поїзд Київ-Прага (нічний): 44$", "🚃 Трамвай до готелю: 1$"] },
+        { id: 5, city: "Будапешт", country: "Угорщина", type: "train", price: 44, time: "16 год", carriers: ["Укрзалізниця"], image: "🇭🇺", details: ["🚕 Таксі до вокзалу: 120 грн", "🚆 Поїзд Київ-Будапешт: 40$", "🚇 Метро: 1.2$"] },
+        { id: 6, city: "Відень", country: "Австрія", type: "bus", price: 54, time: "17 год", carriers: ["Flixbus", "Euroclub"], image: "🇦🇹", details: ["🚕 Таксі до ЦАВ: 100 грн", "🚌 Автобус Київ-Відень: 49$", "🚇 U-Bahn: 2$"] },
+        { id: 7, city: "Братислава", country: "Словаччина", type: "bus", price: 47, time: "18 год", carriers: ["Flixbus", "Slovak Lines"], image: "🇸🇰", details: ["🚕 Таксі до ЦАВ: 100 грн", "🚌 Автобус Київ-Братислава: 43$", "🚌 Місцевий автобус: 0.8$"] },
+        { id: 8, city: "Вроцлав", country: "Польща", type: "bus", price: 39, time: "14 год", carriers: ["Flixbus", "Prykarpattya"], image: "🇵🇱", details: ["🚕 Таксі до Житомирської: 80 грн", "🚌 Автобус Київ-Вроцлав: 35$", "🚊 Трамвай до центру: 0.6$"] },
+        { id: 9, city: "Лодзь", country: "Польща", type: "bus", price: 37, time: "13 год", carriers: ["Flixbus", "Z Time"], image: "🇵🇱", details: ["🚕 Таксі до Даниці: 120 грн", "🚌 Автобус Київ-Лодзь: 33$", "🚋 Трамвай: 0.6$"] },
+        { id: 10, city: "Познань", country: "Польща", type: "bus", price: 41, time: "15 год", carriers: ["Flixbus", "Lux Express"], image: "🇵🇱", details: ["🚕 Таксі до ЦАВ: 100 грн", "🚌 Автобус Київ-Познань: 37$", "🚌 Міський автобус: 0.7$"] },
+        { id: 11, city: "Гданськ", country: "Польща", type: "bus", price: 52, time: "19 год", carriers: ["Flixbus"], image: "🇵🇱", details: ["🚕 Таксі до ЦАВ: 100 грн", "🚌 Автобус Київ-Гданськ: 48$", "🚋 Трамвай: 0.7$"] },
+        { id: 12, city: "Рига", country: "Латвія", type: "bus", price: 67, time: "25 год", carriers: ["Lux Express", "Ecolines"], image: "🇱🇻", details: ["🚕 Таксі до ЦАВ: 100 грн", "🚌 Київ-Рига: 62$", "🚌 Міський автобус: 1$"] },
+        { id: 13, city: "Таллінн", country: "Естонія", type: "bus", price: 72, time: "28 год", carriers: ["Lux Express"], image: "🇪🇪", details: ["🚕 Таксі до ЦАВ: 100 грн", "🚌 Київ-Таллінн: 67$", "🚍 Автобус до центру: 1.2$"] },
+        { id: 14, city: "Вільнюс", country: "Литва", type: "bus", price: 58, time: "22 год", carriers: ["Lux Express", "Toks"], image: "🇱🇹", details: ["🚕 Таксі до ЦАВ: 100 грн", "🚌 Київ-Вільнюс: 53$", "🚍 Автобус до центру: 0.9$"] },
+        { id: 15, city: "Софія", country: "Болгарія", type: "bus", price: 55, time: "21 год", carriers: ["Karpaty", "Union Ivkoni"], image: "🇧🇬", details: ["🚕 Таксі до ЦАВ: 100 грн", "🚌 Київ-Софія: 51$", "🚇 Метро: 0.8$"] },
+        { id: 16, city: "Бухарест", country: "Румунія", type: "bus", price: 48, time: "18 год", carriers: ["Gunsel", "Ecolines"], image: "🇷🇴", details: ["🚕 Таксі до ЦАВ: 100 грн", "🚌 Київ-Бухарест: 44$", "🚇 Метро: 0.6$"] },
+        { id: 17, city: "Мілан", country: "Італія", type: "flight", price: 119, time: "4 год 20 хв", carriers: ["Ryanair", "Wizz Air"], image: "🇮🇹", details: ["🚕 Таксі до аеропорту: 800 грн", "✈️ Авіа Київ-Мілан (через Варшаву): 109$", "🚍 Шатл до центру: 2$"] },
+        { id: 18, city: "Барселона", country: "Іспанія", type: "flight", price: 149, time: "6 год", carriers: ["Ryanair", "Vueling"], image: "🇪🇸", details: ["🚕 Таксі до аеропорту: 800 грн", "✈️ Авіа Київ-Барселона (через Краків): 139$", "🚇 Метро: 2.5$"] },
+        { id: 19, city: "Лондон", country: "Велика Британія", type: "flight", price: 169, time: "7 год", carriers: ["Ryanair", "Wizz Air"], image: "🇬🇧", details: ["🚕 Таксі до аеропорту: 800 грн", "✈️ Авіа Київ-Лондон (через Варшаву): 159$", "🚇 Метро до центру: 3$"] },
+        { id: 20, city: "Париж", country: "Франція", type: "flight", price: 159, time: "6 год 45 хв", carriers: ["Ryanair", "Transavia"], image: "🇫🇷", details: ["🚕 Таксі до аеропорту: 800 грн", "✈️ Авіа Київ-Париж (через Варшаву): 149$", "🚄 RER до центру: 5$"] }
+    ];
+
+    function getCarrierLogos(carriers) {
+        return carriers.map(c => {
+            let icon = c === "Flixbus" ? "🚍" : c === "Lux Express" ? "⭐" : c === "Ryanair" ? "✈️" : c === "Wizz Air" ? "🪁" : "🚌";
+            return `<span class="partner">${icon} ${c}</span>`;
+        }).join('');
+    }
+
+    function renderRoutes(filter = "all") {
+        const container = document.getElementById('routesGrid');
+        const filtered = filter === "all" ? routes : routes.filter(r => r.type === filter);
+        container.innerHTML = filtered.map(route => `
+            <div class="route-card" onclick="openModal(${route.id})">
+                <div class="card-image" style="background: linear-gradient(135deg, #1e293b, ${route.type === 'bus' ? '#2d5a2c' : route.type === 'train' ? '#3b5998' : '#f97316'});">
+                    <div class="card-badge">${route.image} ${route.country}</div>
+                </div>
+                <div class="card-content">
+                    <div class="route-title">
+                        <span>Київ → ${route.city}</span>
+                        <span class="route-price">$${route.price}</span>
+                    </div>
+                    <div class="route-details">
+                        <span>⏱ ${route.time}</span>
+                        <span>${route.type === 'bus' ? '🚌 Автобус' : route.type === 'train' ? '🚆 Поїзд' : '✈️ Авіа'}</span>
+                    </div>
+                    <div class="partner-logos">
+                        ${getCarrierLogos(route.carriers)}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.openModal = function(routeId) {
+        const route = routes.find(r => r.id === routeId);
+        if (!route) return;
+        const modal = document.getElementById('routeModal');
+        const modalContent = document.getElementById('modalContent');
+        modalContent.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="font-size: 1.6rem;">Київ → ${route.city}</h2>
+                <button onclick="closeModal()" style="background: none; border: none; font-size: 1.8rem; cursor: pointer;">&times;</button>
+            </div>
+            <div class="route-steps">
+                <div style="background: #eef2ff; padding: 12px; border-radius: 24px; margin-bottom: 20px; display: flex; justify-content: space-between;">
+                    <span>⏱ ${route.time}</span>
+                    <span>💰 $${route.price}</span>
+                    <span>👥 1 пасажир</span>
+                </div>
+                ${route.details.map(step => `
+                    <div class="step">
+                        <div class="step-icon">${step.includes("🚕") ? "🚕" : step.includes("🚌") ? "🚌" : step.includes("🚆") ? "🚆" : step.includes("✈️") ? "✈️" : "🚶"}</div>
+                        <div style="flex:1">
+                            <div>${step}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            <div style="border-top: 2px dashed #ddd; margin: 16px 0; padding-top: 12px; text-align: center;">
+                <span>✅ Ціни перевірені сьогодні о 09:42</span>
+            </div>
+            <button class="pay-button" onclick="alert('Демо: оплата $1 через LiqPay. Реальний сервіс дає доступ на місяць до всіх 20+ маршрутів.')">
+                🚀 Отримати доступ за $1/місяць
+            </button>
+            <p style="font-size: 0.7rem; text-align: center; margin-top: 14px; color: #6c757d;">Підписка автоматично не продовжується. Безпечна оплата карткою.</p>
+        `;
+        modal.style.display = 'flex';
+    }
+
+    window.closeModal = function() {
+        document.getElementById('routeModal').style.display = 'none';
+    }
+
+    // Фільтри
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const filter = btn.getAttribute('data-filter');
+            renderRoutes(filter);
+        });
+    });
+
+    // Початковий рендер
+    renderRoutes("all");
+
+    // Закриття модалки при кліку поза контентом
+    window.onclick = function(event) {
+        const modal = document.getElementById('routeModal');
+        if (event.target === modal) closeModal();
+    }
+</script>
+</body>
+</html>
